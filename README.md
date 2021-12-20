@@ -18,7 +18,7 @@ built on top of the Python programming language.
 
 ## Installation
 
-The application requires Python 3.8+[Node.js](https://www.python.org/) to run.
+The application requires Python 3.8+[Python](https://www.python.org/) to run.
 
 Install the dependencies and devDependencies and start the server.
 

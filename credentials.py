@@ -1,1 +1,1 @@
-API_KEY = "" #your open weather api key
+API_KEY = "28c53d677bf59f36f7c6cd1aa70e94ca" #your open weather api key
