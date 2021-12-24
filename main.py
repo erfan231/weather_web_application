@@ -1,11 +1,12 @@
 #Modules
-from logging import error, exception
 import streamlit as st
 import requests
 from datetime import datetime
 import pandas as pd
 from streamlit.proto.Markdown_pb2 import Markdown
+import logging
 from credentials import API_KEY
+
 
 
 hide_st_style = """
@@ -24,33 +25,31 @@ openweather_api_map_url = "https://api.openweathermap.org/data/2.5/onecall/timem
 
 
 #Function to fetch the latest data(Weather data)
-@st.cache
+
 def getweather(city):
     try:
         result = requests.get("http://"+ openweather_api_url.format(city,api_key))
-    except error as err:
-        pass
-    if result: # if we get data back from the request
-        json = result.json()
-        country = json["sys"]["country"]
-        temp = json["main"]["temp"] - 273.35
-        temp_feels = json["main"]['feels_like'] - 273.35
-        humid = json["main"]["humidity"] - 273.15
-        icon = json["weather"][0]["icon"]
-        lon = json["coord"]['lon']
-        lat = json["coord"]["lat"]
-        desc = json["weather"][0]["description"]
-        temp_max = json["main"]["temp_max"] - 273.35
-        temp_min = json["main"]["temp_min"] - 273.35
-        sunrise = json["sys"]["sunrise"]
-        sunset = json["sys"]["sunset"]
-        res = [country, round(temp,1),round(temp_feels,1),
-        humid,lon,lat,icon,desc,round(temp_min,1), round(temp_max,1),sunrise,sunset]
+        if result: # if we get data back from the request
+            json = result.json()
+            country = json["sys"]["country"]
+            temp = json["main"]["temp"] - 273.35
+            temp_feels = json["main"]['feels_like'] - 273.35
+            humid = json["main"]["humidity"] - 273.15
+            icon = json["weather"][0]["icon"]
+            lon = json["coord"]['lon']
+            lat = json["coord"]["lat"]
+            desc = json["weather"][0]["description"]
+            temp_max = json["main"]["temp_max"] - 273.35
+            temp_min = json["main"]["temp_min"] - 273.35
+            sunrise = json["sys"]["sunrise"]
+            sunset = json["sys"]["sunset"]
+            res = [country, round(temp,1),round(temp_feels,1),
+            humid,lon,lat,icon,desc,round(temp_min,1), round(temp_max,1),sunrise,sunset]
 
-        return res, json
-    else:
-        print("Error")
-        #print(json)
+            return res, json
+    except ValueError as e:
+        logging.warning("City Not Found")
+        return None
 
 
 #getweather(city_id)
@@ -79,27 +78,28 @@ with col1:
     city_name = st.text_input("Please enter the city name")
     with col2:
         if city_name:
-            res, json = getweather(city_name)
-            st.success("Current: " + str(round(res[1],2)))
-            st.info("Feels like: " + str(round(res[2],2)))
-            st.subheader("Status: " + res[7])
-            web_str = "![Alt Text]"+"(http://openweathermap.org/img/wn/"+res[6]+"@2x.png)"
-            st.markdown(web_str)
+            if getweather(city_name) is not None:
+            
+                res, json = getweather(city_name)
+                st.success("Current: " + str(round(res[1],2)))
+                st.info("Feels like: " + str(round(res[2],2)))
+                st.subheader("Status: " + res[7])
+                web_str = "![Alt Text]"+"(http://openweathermap.org/img/wn/"+res[6]+"@2x.png)"
+                st.markdown(web_str)
+            else:
+                st.error("Please enter a valid city name")
     
 if city_name:
     show_hist = st.expander(label= "More Information")
     with show_hist:
+        if getweather(city_name) is not None:
         #start_date_string = st.date_input(label = "Enter the date")
-        temp_min_col, temp_max_col = st.columns(2)
-        temp_min_col.metric(label="Temperature min", value=res[8])
-        temp_max_col.metric(label="Temperature max", value=res[9])
-        sunset, sunrise = st.columns(2)
-        sunset.metric(label="Sunrise", value=datetime.utcfromtimestamp(res[10]).strftime('%H:%M:%S'))
-        sunrise.metric(label="Sunrise", value=datetime.utcfromtimestamp(res[11]).strftime('%H:%M:%S'))
+            temp_min_col, temp_max_col = st.columns(2)
+            temp_min_col.metric(label="Temperature min", value=res[8])
+            temp_max_col.metric(label="Temperature max", value=res[9])
+            sunset, sunrise = st.columns(2)
+            sunset.metric(label="Sunrise", value=datetime.utcfromtimestamp(res[10]).strftime('%H:%M:%S'))
+            sunrise.metric(label="Sunrise", value=datetime.utcfromtimestamp(res[11]).strftime('%H:%M:%S'))
 
-
-
-
-
-    #map the location using the lat and loon we got from openweather
-    st.map(pd.DataFrame({"lat": [res[5]], "lon": [res[4]]}, columns = ["lat", "lon"]))
+        #map the location using the lat and loon we got from openweather
+            st.map(pd.DataFrame({"lat": [res[5]], "lon": [res[4]]}, columns = ["lat", "lon"]))
