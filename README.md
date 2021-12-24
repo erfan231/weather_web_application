@@ -1,6 +1,6 @@
 # Weather web application
 A simple weather web application developed with Python and Streamlit.
-- [DEMO](https://share.streamlit.io/erfan231/weather_web_application/main/main.py) -Python
+- [DEMO](https://share.streamlit.io/erfan231/weather_web_application/main/main.py) - Weather App
 
 
 ## Features
